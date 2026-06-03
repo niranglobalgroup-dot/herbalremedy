@@ -533,24 +533,43 @@
     }
   });
 
-  // Form submission
-  function handleSubmit() {
-    const email = document.getElementById('email').value;
-    const firstName = document.getElementById('firstName').value;
-    const agree = document.getElementById('agreeCheck').checked;
+  // Form submission — connected to Formspree
+  async function handleSubmit() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const phone     = document.getElementById('phone').value.trim();
+    const interest  = document.getElementById('interest').value;
+    const agree     = document.getElementById('agreeCheck').checked;
+
     if (!firstName || !email) { alert('Please enter your name and email.'); return; }
     if (!agree) { alert('Please agree to the terms to continue.'); return; }
 
-    // ===== CONNECT YOUR BACKEND HERE =====
-    // Example with Formspree:
-    // fetch('https://formspree.io/f/YOUR_FORM_ID', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ firstName, email })
-    // });
+    const btn = document.querySelector('.btn-submit');
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
 
-    document.getElementById('leadForm').style.display = 'none';
-    document.getElementById('formSuccess').style.display = 'block';
+    try {
+      const res = await fetch('https://formspree.io/f/xjgdbqyw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, email, phone, interest })
+      });
+
+      if (res.ok) {
+        document.getElementById('leadForm').style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'block';
+      } else {
+        const data = await res.json();
+        alert(data?.errors?.[0]?.message || 'Something went wrong. Please try again.');
+        btn.textContent = '🌿 Get My Free Access';
+        btn.disabled = false;
+      }
+    } catch (err) {
+      alert('Network error. Please check your connection and try again.');
+      btn.textContent = '🌿 Get My Free Access';
+      btn.disabled = false;
+    }
   }
 </script>
 
